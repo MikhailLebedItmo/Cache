@@ -248,9 +248,9 @@ jobs:
               if ($out -eq "❌ empty or !exists")
               {                
                 echo '```' >> $env:GITHUB_STEP_SUMMARY
-                echo "❌ [ERROR] Output file (arg '--asm') not exists or is empty [program completed with code $exit_code_p]" >> $env:GITHUB_STEP_SUMMARY  
+                echo "❌ [ERROR] Output file (arg '--bin') not exists or is empty [program completed with code $exit_code_p]" >> $env:GITHUB_STEP_SUMMARY  
                 echo '```' >> $env:GITHUB_STEP_SUMMARY  
-                $verdict = "❌ [ERROR] Output file (arg '--asm') not exists or is empty [program completed with code $exit_code_p]"
+                $verdict = "❌ [ERROR] Output file (arg '--bin') not exists or is empty [program completed with code $exit_code_p]"
                 $test_exit_code -= 0
               }
               else
