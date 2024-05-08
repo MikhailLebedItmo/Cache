@@ -25,10 +25,11 @@ defaults:
 
 jobs:
   buildtest:
-    if: (github.actor == 'RonoveRaum') || (github.run_number < ${{ vars.GH_RUNNER_RUN_ATTEMPS }})
+    if: (github.actor == 'RonoveRaum') || (github.run_number < ${{ vars.GH_RUNNER_RUN_ATTEMPS }})   
+    continue-on-error: false
     strategy:
       max-parallel: 1
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [ubuntu-22.04, windows-latest] #
         compiler: [clang, cl]
@@ -39,7 +40,7 @@ jobs:
             compiler: clang
     
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 4      
+    timeout-minutes: 7     
 
     steps:
       - uses: actions/checkout@v4
