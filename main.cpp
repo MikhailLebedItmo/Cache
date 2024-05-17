@@ -727,13 +727,13 @@ public:
             , cache(cache) {}
 
     std::pair<uint32_t, uint32_t> run() {
-        while (cur_command->front() != "jalr" || ((*cur_command)[2] != "ra") && (*cur_command)[2] != "x1") {
+        while (cur_command->front() != "jalr" || ((*cur_command)[2] != "ra" && (*cur_command)[2] != "x1")) {
             if (cur_command->size() == 3) {
                 InterpreterTwoArgsCommandArgs args = {cur_command, registers, cache, (*cur_command)[1], (*cur_command)[2]};
                 two_args_instructions.at(cur_command->front())(args);
             } else if (cur_command->size() == 4) {
                 InterpreterThreeArgsCommandArgs args{
-                        cur_command, registers, cache, (*cur_command)[1], (*cur_command)[2], (*cur_command)[3]
+                        {cur_command, registers, cache, (*cur_command)[1], (*cur_command)[2]}, (*cur_command)[3]
                 };
                 three_args_instructions.at(cur_command->front())(args);
             } else {
@@ -1180,7 +1180,7 @@ public:
                 EncoderTwoArgsCommandArgs args{command[1], command[2]};
                 code = two_args_instructions.at(command[0])(args);
             } else if (three_args_instructions.contains(command[0])) {
-                EncoderThreeArgsCommandArgs args{command[1], command[2], command[3]};
+                EncoderThreeArgsCommandArgs args{{command[1], command[2]}, command[3]};
                 code = three_args_instructions.at(command[0])(args);
             } else {
                 std::cerr << "Error: command " << command[0] << " not found" << std::endl;
@@ -1195,12 +1195,6 @@ public:
             fout.put(byte_2);
             fout.put(byte_1);
             fout.put(byte_0);
-
-            // Debug
-//            fout.put(byte_0);
-//            fout.put(byte_1);
-//            fout.put(byte_2);
-//            fout.put(byte_3);
         }
     }
 private:
