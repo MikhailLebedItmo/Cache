@@ -13,6 +13,9 @@
 #include <fstream>
 
 
+#pragma clang diagnostic ignored "-Wall"
+
+
 const int MEM_SIZE = 256 * (1 << 10);
 const int CACHE_SIZE = 4 * (1 << 10);
 const int CACHE_LINE_SIZE = 32;
