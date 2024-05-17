@@ -12,7 +12,6 @@
 #include <filesystem>
 #include <fstream>
 
-
 #pragma clang diagnostic ignored "-Wall"
 
 
@@ -54,7 +53,7 @@ protected:
 
 struct MEMLine {
     std::vector<uint8_t> bytes;
-    uint32_t tag = -1;
+    uint32_t tag = 2000000000;
 };
 
 class MEM : private AddressConfig {
