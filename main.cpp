@@ -12,7 +12,6 @@
 #include <filesystem>
 #include <fstream>
 
-#pragma clang diagnostic ignored "-Wall"
 
 
 const int MEM_SIZE = 256 * (1 << 10);
@@ -154,7 +153,7 @@ private:
 
     uint8_t& get_mem_cell(uint32_t address) {
         if (!is_contains(address)) {
-            std::cerr << "Error: mem not find" << std::endl;
+            std::cerr << "Error: mem_t not find" << std::endl;
             exit(-1);
         }
         auto [tag, index, offset] = split_address(address);
@@ -214,7 +213,7 @@ private:
 
     uint8_t& get_mem_cell(uint32_t address) {
         if (!is_contains(address)) {
-            std::cerr << "Error: mem not find" << std::endl;
+            std::cerr << "Error: mem_t not find" << std::endl;
             exit(-1);
         }
         auto [tag, index, offset] = split_address(address);
@@ -1578,7 +1577,7 @@ const std::unordered_map<std::string, CodeEncoder::ThreeArgsInstruction> CodeEnc
         {"remu", &CodeEncoder::remu}, {"slt", &CodeEncoder::slt}, {"sltu", &CodeEncoder::sltu},
         {"xor", &CodeEncoder::xor_}
 };
-
+#include <ranges>
 const std::unordered_map<std::string, CodeEncoder::TwoArgsInstruction> CodeEncoder::two_args_instructions = {
         {"lui", &CodeEncoder::lui}, {"auipc", &CodeEncoder::auipc}, {"auipc", &CodeEncoder::auipc},
         {"jal", &CodeEncoder::jal}
@@ -1640,5 +1639,8 @@ int main(int argc, char** argv) {
     }
     CodeEncoder code_encoder(commands);
     code_encoder.encode_all_commands(bin_file_path);
+    std::vector<int> v{1, 2, 3};
+    auto t = std::views::all(v);
+    std::cout << t[3];
     return 0;
 }
