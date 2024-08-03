@@ -11,7 +11,7 @@
 
 
 template <std::input_iterator InIt, std::output_iterator<std::vector<std::string>> OutIt>
-requires requires (InIt it) {{*it} -> std::convertible_to<char>;}
+// requires requires (InIt it) {{*it} -> std::convertible_to<char>;}
 class AsmCommandParser {
 private:
     inline static const std::unordered_set<std::string> two_args_commands = {"lui", "auipc", "jal"};
@@ -23,15 +23,15 @@ private:
 public:
     AsmCommandParser(InIt beg, InIt end, OutIt out)
         : cur(beg), end(end), out(out) {
-
+        parse_all_commands();
     }
-
+private:
     void parse_all_commands() {
-        while (cur != end()) {
+        while (cur != end) {
             parse_command();
         }
     }
-private:
+
     void lower(std::string& s) {
         std::ranges::transform(s, s.begin(),
                        [](unsigned char c){ return std::tolower(c);});
@@ -73,13 +73,14 @@ private:
         std::vector<std::string> command = {parse_command_name()};
         const std::string& name = command[0];
         if (two_args_commands.contains(name)) {
-            parse_args(*out, 2);
+            parse_args(command, 2);
         } else if (three_args_commands.contains(name)) {
-            parse_args(*out, 3);
+            parse_args(command, 3);
         } else {
             std::cerr << "Error: command " << name << " not found" << std::endl;
             exit(-1);
         }
+        *out = std::move(command);
         ++out;
     }
 private:
