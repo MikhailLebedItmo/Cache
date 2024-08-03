@@ -28,7 +28,7 @@ public:
         if (it != lines.end()) {
             update_flags(it);
 
-            return {(*it)[offset], true};
+            return {it->get_mem_cell(offset), true};
         }
         it = std::ranges::find_if(lines,
                                   [](const auto& line){return line.flag() == 0;}
@@ -36,7 +36,7 @@ public:
         it->update_line(mem.read_line(address));
         update_flags(it);
 
-        return {(*it)[offset], false};
+        return {it->get_mem_cell(offset), false};
     }
 private:
     std::vector<plru_cashe_line_t> lines;

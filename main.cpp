@@ -1655,18 +1655,16 @@ int main(int argc, char** argv) {
         LRUCache<CACHE_WAY, CACHE_TAG_LEN, CACHE_INDEX_LEN, CACHE_OFFSET_LEN> cache;
         Interpreter interpreter(commands, cache);
         auto [hits_cnt, requests_cnt] = interpreter.run();
-//        double hits_percent = (double)hits_cnt / requests_cnt * 100;
-//        std::printf("LRU\thit rate: %3.4f%%\n", hits_percent);
+        double hits_percent = (double)hits_cnt / requests_cnt * 100;
+        std::printf("LRU\thit rate: %3.4f%%\n", hits_percent);
     }
-
-
-//    if (replacement == 0 || replacement == 2) {
-//        PLRUCache cache(CACHE_WAY, CACHE_TAG_LEN, CACHE_INDEX_LEN, CACHE_OFFSET_LEN);
-//        Interpreter interpreter(commands, cache);
-//        auto [hits_cnt, requests_cnt] = interpreter.run();
-//        double hits_percent = (double)hits_cnt / requests_cnt * 100;
-//        std::printf("pLRU\thit rate: %3.4f%%\n", hits_percent);
-//    }
+    if (replacement == 0 || replacement == 2) {
+        PLRUCache<CACHE_WAY, CACHE_TAG_LEN, CACHE_INDEX_LEN, CACHE_OFFSET_LEN> cache;
+        Interpreter interpreter(commands, cache);
+        auto [hits_cnt, requests_cnt] = interpreter.run();
+        double hits_percent = (double)hits_cnt / requests_cnt * 100;
+        std::printf("pLRU\thit rate: %3.4f%%\n", hits_percent);
+    }
 //    CodeEncoder code_encoder(commands);
 //    code_encoder.encode_all_commands(bin_file_path);
     return 0;

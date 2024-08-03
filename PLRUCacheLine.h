@@ -12,8 +12,8 @@ public:
 
     PLRUCacheLine() = default;
 
-    void update_line(MEMLine<MaxTag, LineSize>& mem_line) {
-        this->line = mem_line;
+    void update_line(const MEMLine<MaxTag, LineSize>& mem_line) {
+        MEMLine<MaxTag, LineSize>::operator=(mem_line);
     }
 
     bool& flag() {
