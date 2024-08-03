@@ -12,8 +12,8 @@ public:
 
     LRUCacheLine() = default;
 
-    void update_line(MEMLine<MaxTag, LineSize>& mem_line) {
-        this->line = mem_line;
+    void update_line(const MEMLine<MaxTag, LineSize>& mem_line) {
+        MEMLine<MaxTag, LineSize>::operator=(mem_line);
     }
 
     uint32_t& flag() {
@@ -26,7 +26,7 @@ public:
 
     // At program startup all lines are in invalid state
     bool is_invalidated() const {
-        return this->tag == MaxTag;
+        return MEMLine<MaxTag, LineSize>::line.size() == 0;
     }
 private:
     uint32_t flag_ = 0;

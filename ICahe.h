@@ -7,18 +7,19 @@
 
 template <typename Implementation>
 class ICache {
+public:
     ICache() = default;
 
     template<uint8_t BytesCnt>
     uint32_t read(uint32_t address) {
-        static_assert(BytesCnt < 4 && BytesCnt > 0);
+        static_assert(BytesCnt <= 4 && BytesCnt > 0);
         ++requests_cnt;
         uint32_t bytes_read = 0;
         bool is_hit = true;
         for (uint8_t i = 0; i < BytesCnt; ++i) {
             auto res = get_mem_cell(address);  // todo: rename
             is_hit = is_hit && res.second;
-            bytes_read |= res.first << (i * 8);
+            bytes_read |= (uint32_t)res.first << (i * 8);
         }
         hits_cnt += is_hit;
 
@@ -27,7 +28,7 @@ class ICache {
 
     template<uint8_t BytesCnt>
     void write(uint32_t address, uint32_t value) {
-        static_assert(BytesCnt < 4 && BytesCnt > 0);
+        static_assert(BytesCnt <= 4 && BytesCnt > 0);
         ++requests_cnt;
         bool is_hit = true;
         uint32_t byte_mask = (1 << 8) - 1;

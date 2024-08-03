@@ -7,9 +7,11 @@
 template <uint32_t MaxTag, uint32_t LineSize>
 class MEMLine {
 public:
-    MEMLine() = default;
+    MEMLine() {
 
-    MEMLine(uint32_t tag, std::span<std::byte, LineSize> line)
+    }
+
+    MEMLine(uint32_t tag, std::span<std::byte> line)
             : tag(tag)
             , line(line) {
         assert(tag < MaxTag);
@@ -24,5 +26,5 @@ public:
     }
 protected:
     uint32_t tag = MaxTag;
-    std::span<std::byte, LineSize> line;
+    std::span<std::byte> line;
 };

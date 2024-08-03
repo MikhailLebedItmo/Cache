@@ -9,12 +9,12 @@
 
 
 struct TwoArgs {
-    std::string& arg_1;
-    std::string& arg_2;
+    const std::string& arg_1;
+    const std::string& arg_2;
 };
 
 struct ThreeArgs : public TwoArgs {
-    std::string& arg_3;
+    const std::string& arg_3;
 };
 
 
@@ -23,11 +23,11 @@ class Interpreter {
 public:
     using Commands = std::vector<std::vector<std::string>>;
 private:
-    using TwoArgsInstruction = void (Interpreter::*)(TwoArgs);
-    using ThreeArgsInstruction = void (Interpreter::*)(ThreeArgs);
+    using TwoArgsInstruction = void (Interpreter::*)(TwoArgs&); // todo maby const TwoArgs&
+    using ThreeArgsInstruction = void (Interpreter::*)(ThreeArgs&);
 public:
-    Interpreter(Commands code, ICache<Implementation>& cache)
-        : code(std::move(code))
+    Interpreter(const Commands& code, ICache<Implementation>& cache)
+        : code(code)
         , cur_command(this->code.begin())
         , registers()
         , cache(cache) {
@@ -38,18 +38,20 @@ public:
         while (cur_command->front() != "jalr" || ((*cur_command)[2] != "ra" && (*cur_command)[2] != "x1")) {
             if (cur_command->size() == 3) {
                 TwoArgs args = {(*cur_command)[1], (*cur_command)[2]};
-                two_args_instructions.at(cur_command->front())(args);
+                auto instruction_ptr = two_args_instructions.at(cur_command->front());
+                (*this.*instruction_ptr)(args);
             } else if (cur_command->size() == 4) {
                 ThreeArgs args{
                         {(*cur_command)[1], (*cur_command)[2]}, (*cur_command)[3]
                 };
-                three_args_instructions.at(cur_command->front())(args);
+                auto instruction_ptr = three_args_instructions.at(cur_command->front());
+                (*this.*instruction_ptr)(args);
             } else {
                 std::cerr << "Error: wrong command";
             }
         }
 
-        return {cache.get_hit_cnt(), cache.get_request_cnt()};
+        return {cache.get_hits_cnt(), cache.get_requests_cnt()};
     }
 private: // Instructions
     void lui(TwoArgs& args) {
@@ -164,31 +166,31 @@ private: // Instructions
 
     void lb(ThreeArgs& args) {
         uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
-        registers[args.arg_1] = expand_signed_byte(cache.read_1_byte(address));
+        registers[args.arg_1] = expand_N_bit_value<8>(cache.template read<1>(address));
         jump(1);
     }
 
     void lh(ThreeArgs& args) {
         uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
-        registers[args.arg_1] = expand_2_signed_byte(cache.read_2_bytes(address));
+        registers[args.arg_1] = expand_N_bit_value<16>(cache.template read<2>(address));
         jump(1);
     }
 
     void lw(ThreeArgs& args) {
         uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
-        registers[args.arg_1] = cache.read_4_bytes(address);
+        registers[args.arg_1] = cache.template read<4>(address);
         jump(1);
     }
 
     void lbu(ThreeArgs& args) {
         uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
-        registers[args.arg_1] = cache.read_1_byte(address);
+        registers[args.arg_1] = cache.template read<1>(address);
         jump(1);
     }
 
     void lhu(ThreeArgs& args) {
         uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
-        registers[args.arg_1] = cache.read_2_bytes(address);
+        registers[args.arg_1] = cache.template read<2>(address);
         jump(1);
     }
 
@@ -196,7 +198,7 @@ private: // Instructions
         uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
         uint32_t byte_mask = (1 << 8) - 1;
         uint8_t byte = registers[args.arg_1] & byte_mask;
-        cache.write_1_byte(address, byte);
+        cache.template write<1>(address, byte);
         jump(1);
     }
 
@@ -204,14 +206,14 @@ private: // Instructions
         uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
         uint32_t half_word_mask = (1 << 16) - 1;
         uint16_t half_word = registers[args.arg_1] & half_word_mask;
-        cache.write_2_bytes(address, half_word);
+        cache.template write<2>(address, half_word);
         jump(1);
     }
 
     void sw(ThreeArgs& args) {
         uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
         uint32_t word = registers[args.arg_1];
-        cache.write_4_bytes(address, word);
+        cache.template write<4>(address, word);
         jump(1);
     }
 
@@ -347,6 +349,11 @@ private:
     template <uint8_t N> // todo: N < 32
     static int32_t expand_N_bit_value(const std::string& value) {
         uint32_t ivalue = convert_to_unsigned_value(value);
+        return expand_N_bit_value<N>(ivalue);
+    }
+
+    template <uint8_t N> // todo: N < 32
+    static int32_t expand_N_bit_value(uint32_t ivalue) {
         if ((ivalue >> (N - 1)) & 1) {
             // number is negative => add 1 to the beginning
             uint32_t mask = (1 << (32 - N)) - 1;
@@ -362,7 +369,7 @@ private:
     }
 private:
     inline static const std::unordered_map<std::string, TwoArgsInstruction> two_args_instructions = {
-            {"lui", &Interpreter::lui}, {"auipc", &Interpreter::auipc}, {"auipc", &Interpreter::auipc},
+            {"lui", &Interpreter::lui}, {"auipc", &Interpreter::auipc},
             {"jal", &Interpreter::jal}
     };
     inline static const std::unordered_map<std::string, ThreeArgsInstruction> three_args_instructions = {
@@ -384,8 +391,8 @@ private:
             {"mulhu", &Interpreter::mulhu}, {"div", &Interpreter::div}, {"divu", &Interpreter::divu},
             {"rem", &Interpreter::rem}, {"remu", &Interpreter::remu}
     };
-    Commands code;
-    Commands::iterator cur_command;
+    const Commands& code;
+    Commands::const_iterator cur_command;
     Registers registers;
     ICache<Implementation>& cache;
 };
