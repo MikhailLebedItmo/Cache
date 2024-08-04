@@ -32,7 +32,7 @@ public:
         return {tag, index, offset};
     }
 
-    // Возвращает строку оперативной памяти, в которой находиться ячейка с заданным адрессом
+    // Возвращает строку оперативной памяти, в которой находиться ячейка с заданным адресом
     static LineRange get_containing_line(uint32_t address) {
         uint32_t first_cell_index = address >> OffsetLen << OffsetLen;
         uint32_t last_cell_index = first_cell_index + (1 << OffsetLen);

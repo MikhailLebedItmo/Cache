@@ -15,7 +15,7 @@ public:
 
     }
 
-    // Возвращает линию оперативной памяти, в которой находиться ячейка с данным адрессом
+    // Возвращает линию оперативной памяти, в которой находиться ячейка с данным адресом
     mem_line read_line(uint32_t address) {
         auto [tag, index, offset] = address_config::split_address(address);
         auto [first_cell_index, last_cell_index] = address_config::get_containing_line(address);
