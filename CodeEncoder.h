@@ -8,8 +8,10 @@
 #include <iostream>
 
 
-// todo add concepts
+
+
 template <std::input_iterator InIt, std::output_iterator<char> OutIt>
+requires requires (InIt it) {{*it} -> std::convertible_to<std::vector<std::string>>;}
 class CodeEncoder {
 public:
     explicit CodeEncoder(InIt commands_it_beg, InIt commands_it_end, OutIt out_it)
