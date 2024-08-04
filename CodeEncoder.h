@@ -39,309 +39,560 @@ public:
 private:
     static uint32_t lui(TwoArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::convert_to_unsigned_value(args.arg_2);
-        uint32_t code = CodeEncoder().add_bits(20, imm).add_register(args.arg_1)
-                .add_bits(7, 0b0110111).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(20, imm)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110111)
+            .get_code();
         return code;
     }
 
     static uint32_t auipc(TwoArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::convert_to_unsigned_value(args.arg_2);
-        uint32_t code = CodeEncoder().add_bits(20, imm).add_register(args.arg_1)
-                .add_bits(7, 0b0010111).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(20, imm)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0010111)
+            .get_code();
         return code;
     }
 
     static uint32_t jal(TwoArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<21>(args.arg_2);
-        uint32_t code = CodeEncoder().add_bits(1, slice(imm, 20, 20)).add_bits(10, slice(imm, 10, 1))
-                .add_bits(1, slice(imm, 11, 11)).add_bits(8, slice(imm, 19, 12))
-                .add_register(args.arg_1).add_bits(7, 0b1101111).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(1, slice(imm, 20, 20))
+            .add_bits(10, slice(imm, 10, 1))
+            .add_bits(1, slice(imm, 11, 11))
+            .add_bits(8, slice(imm, 19, 12))
+            .add_register(args.arg_1)
+            .add_bits(7, 0b1101111)
+            .get_code();
         return code;
     }
 
     static uint32_t mul(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000001).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b000).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000001)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b000)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t mulh(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000001).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b001).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000001)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b001)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t mulhsu(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000001).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b010).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000001)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b010)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t mulhu(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000001).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b011).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000001)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b011)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t div(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000001).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b100).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000001)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b100)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t divu(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000001).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b101).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000001)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b101)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t rem(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000001).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b110).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000001)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b110)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t remu(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000001).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b111).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000001)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b111)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t jalr(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_3);
-        uint32_t code = CodeEncoder().add_bits(12, imm).add_register(args.arg_2).add_bits(3, 0b000)
-                .add_register(args.arg_1).add_bits(7, 0b1100111).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(12, imm)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b000)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b1100111)
+            .get_code();
         return code;
     }
 
     static uint32_t beq(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<13>(args.arg_3);
-        uint32_t code = CodeEncoder().add_bits(1, slice(imm, 12, 12)).add_bits(6, slice(imm, 10, 5))
-                .add_register(args.arg_2).add_register(args.arg_1).add_bits(3, 0b000).add_bits(4, slice(imm, 4, 1))
-                .add_bits(1, slice(imm, 11, 11)).add_bits(7, 0b1100011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(1, slice(imm, 12, 12))
+            .add_bits(6, slice(imm, 10, 5))
+            .add_register(args.arg_2)
+            .add_register(args.arg_1)
+            .add_bits(3, 0b000)
+            .add_bits(4, slice(imm, 4, 1))
+            .add_bits(1, slice(imm, 11, 11))
+            .add_bits(7, 0b1100011)
+            .get_code();
         return code;
     }
 
     static uint32_t bne(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<13>(args.arg_3);
-        uint32_t code = CodeEncoder().add_bits(1, slice(imm, 12, 12)).add_bits(6, slice(imm, 10, 5))
-                .add_register(args.arg_2).add_register(args.arg_1).add_bits(3, 0b001).add_bits(4, slice(imm, 4, 1))
-                .add_bits(1, slice(imm, 11, 11)).add_bits(7, 0b1100011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(1, slice(imm, 12, 12))
+            .add_bits(6, slice(imm, 10, 5))
+            .add_register(args.arg_2)
+            .add_register(args.arg_1)
+            .add_bits(3, 0b001)
+            .add_bits(4, slice(imm, 4, 1))
+            .add_bits(1, slice(imm, 11, 11))
+            .add_bits(7, 0b1100011)
+            .get_code();
         return code;
 
     }
 
     static uint32_t blt(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<13>(args.arg_3);
-        uint32_t code = CodeEncoder().add_bits(1, slice(imm, 12, 12)).add_bits(6, slice(imm, 10, 5))
-                .add_register(args.arg_2).add_register(args.arg_1).add_bits(3, 0b100).add_bits(4, slice(imm, 4, 1))
-                .add_bits(1, slice(imm, 11, 11)).add_bits(7, 0b1100011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(1, slice(imm, 12, 12))
+            .add_bits(6, slice(imm, 10, 5))
+            .add_register(args.arg_2)
+            .add_register(args.arg_1)
+            .add_bits(3, 0b100)
+            .add_bits(4, slice(imm, 4, 1))
+            .add_bits(1, slice(imm, 11, 11))
+            .add_bits(7, 0b1100011)
+            .get_code();
         return code;
     }
 
     static uint32_t bge(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<13>(args.arg_3);
-        uint32_t code = CodeEncoder().add_bits(1, slice(imm, 12, 12)).add_bits(6, slice(imm, 10, 5))
-                .add_register(args.arg_2).add_register(args.arg_1).add_bits(3, 0b101).add_bits(4, slice(imm, 4, 1))
-                .add_bits(1, slice(imm, 11, 11)).add_bits(7, 0b1100011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(1, slice(imm, 12, 12))
+            .add_bits(6, slice(imm, 10, 5))
+            .add_register(args.arg_2)
+            .add_register(args.arg_1)
+            .add_bits(3, 0b101)
+            .add_bits(4, slice(imm, 4, 1))
+            .add_bits(1, slice(imm, 11, 11))
+            .add_bits(7, 0b1100011)
+            .get_code();
         return code;
     }
 
     static uint32_t bltu(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<13>(args.arg_3);
-        uint32_t code = CodeEncoder().add_bits(1, slice(imm, 12, 12)).add_bits(6, slice(imm, 10, 5))
-                .add_register(args.arg_2).add_register(args.arg_1).add_bits(3, 0b110).add_bits(4, slice(imm, 4, 1))
-                .add_bits(1, slice(imm, 11, 11)).add_bits(7, 0b1100011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(1, slice(imm, 12, 12))
+            .add_bits(6, slice(imm, 10, 5))
+            .add_register(args.arg_2)
+            .add_register(args.arg_1)
+            .add_bits(3, 0b110)
+            .add_bits(4, slice(imm, 4, 1))
+            .add_bits(1, slice(imm, 11, 11))
+            .add_bits(7, 0b1100011)
+            .get_code();
         return code;
     }
 
     static uint32_t bgeu(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<13>(args.arg_3);
-        uint32_t code = CodeEncoder().add_bits(1, slice(imm, 12, 12)).add_bits(6, slice(imm, 10, 5))
-                .add_register(args.arg_2).add_register(args.arg_1).add_bits(3, 0b111).add_bits(4, slice(imm, 4, 1))
-                .add_bits(1, slice(imm, 11, 11)).add_bits(7, 0b1100011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(1, slice(imm, 12, 12))
+            .add_bits(6, slice(imm, 10, 5))
+            .add_register(args.arg_2)
+            .add_register(args.arg_1)
+            .add_bits(3, 0b111)
+            .add_bits(4, slice(imm, 4, 1))
+            .add_bits(1, slice(imm, 11, 11))
+            .add_bits(7, 0b1100011)
+            .get_code();
         return code;
     }
 
     static uint32_t lb(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder().add_bits(12, imm).add_register(args.arg_3).add_bits(3, 0b000)
-                .add_register(args.arg_1).add_bits(7, 0b0000011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(12, imm)
+            .add_register(args.arg_3)
+            .add_bits(3, 0b000)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0000011)
+            .get_code();
         return code;
     }
 
     static uint32_t lh(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder().add_bits(12, imm).add_register(args.arg_3).add_bits(3, 0b001)
-                .add_register(args.arg_1).add_bits(7, 0b0000011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(12, imm)
+            .add_register(args.arg_3)
+            .add_bits(3, 0b001)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0000011)
+            .get_code();
         return code;
     }
 
     static uint32_t lw(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder().add_bits(12, imm).add_register(args.arg_3).add_bits(3, 0b010)
-                .add_register(args.arg_1).add_bits(7, 0b0000011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(12, imm)
+            .add_register(args.arg_3)
+            .add_bits(3, 0b010)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0000011)
+            .get_code();
         return code;
     }
 
     static uint32_t lbu(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder().add_bits(12, imm).add_register(args.arg_3).add_bits(3, 0b100)
-                .add_register(args.arg_1).add_bits(7, 0b0000011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(12, imm)
+            .add_register(args.arg_3)
+            .add_bits(3, 0b100)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0000011)
+            .get_code();
         return code;    }
 
     static uint32_t lhu(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder().add_bits(12, imm).add_register(args.arg_3).add_bits(3, 0b101)
-                .add_register(args.arg_1).add_bits(7, 0b0000011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(12, imm)
+            .add_register(args.arg_3)
+            .add_bits(3, 0b101)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0000011)
+            .get_code();
         return code;
     }
 
     static uint32_t sb(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder().add_bits(7, slice(imm, 11, 5)).add_register(args.arg_1)
-                .add_register(args.arg_3).add_bits(3, 0b000).add_bits(5, slice(imm, 4, 0))
-                .add_bits(7, 0b0100011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, slice(imm, 11, 5))
+            .add_register(args.arg_1)
+            .add_register(args.arg_3)
+            .add_bits(3, 0b000)
+            .add_bits(5, slice(imm, 4, 0))
+            .add_bits(7, 0b0100011)
+            .get_code();
         return code;
     }
 
     static uint32_t sh(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder().add_bits(7, slice(imm, 11, 5)).add_register(args.arg_1)
-                .add_register(args.arg_3).add_bits(3, 0b001).add_bits(5, slice(imm, 4, 0))
-                .add_bits(7, 0b0100011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, slice(imm, 11, 5))
+            .add_register(args.arg_1)
+            .add_register(args.arg_3)
+            .add_bits(3, 0b001)
+            .add_bits(5, slice(imm, 4, 0))
+            .add_bits(7, 0b0100011)
+            .get_code();
         return code;
     }
 
     static uint32_t sw(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder().add_bits(7, slice(imm, 11, 5)).add_register(args.arg_1)
-                .add_register(args.arg_3).add_bits(3, 0b010).add_bits(5, slice(imm, 4, 0))
-                .add_bits(7, 0b0100011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, slice(imm, 11, 5))
+            .add_register(args.arg_1)
+            .add_register(args.arg_3)
+            .add_bits(3, 0b010)
+            .add_bits(5, slice(imm, 4, 0))
+            .add_bits(7, 0b0100011)
+            .get_code();
         return code;
     }
 
     static uint32_t addi(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_3);
-        uint32_t code = CodeEncoder().add_bits(12, imm).add_register(args.arg_2).add_bits(3, 0b000)
-                .add_register(args.arg_1).add_bits(7, 0b0010011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(12, imm)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b000)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0010011)
+            .get_code();
         return code;
     }
 
     static uint32_t slti(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_3);
-        uint32_t code = CodeEncoder().add_bits(12, imm).add_register(args.arg_2).add_bits(3, 0b010)
-                .add_register(args.arg_1).add_bits(7, 0b0010011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(12, imm)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b010)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0010011)
+            .get_code();
         return code;
     }
 
     static uint32_t sltiu(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_3);
-        uint32_t code = CodeEncoder().add_bits(12, imm).add_register(args.arg_2).add_bits(3, 0b011)
-                .add_register(args.arg_1).add_bits(7, 0b0010011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(12, imm)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b011)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0010011)
+            .get_code();
         return code;
     }
 
     static uint32_t xori(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_3);
-        uint32_t code = CodeEncoder().add_bits(12, imm).add_register(args.arg_2).add_bits(3, 0b100)
-                .add_register(args.arg_1).add_bits(7, 0b0010011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(12, imm)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b100)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0010011)
+            .get_code();
         return code;
     }
 
     static uint32_t ori(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_3);
-        uint32_t code = CodeEncoder().add_bits(12, imm).add_register(args.arg_2).add_bits(3, 0b110)
-                .add_register(args.arg_1).add_bits(7, 0b0010011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(12, imm)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b110)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0010011)
+            .get_code();
         return code;
     }
 
     static uint32_t andi(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_3);
-        uint32_t code = CodeEncoder().add_bits(12, imm).add_register(args.arg_2).add_bits(3, 0b111)
-                .add_register(args.arg_1).add_bits(7, 0b0010011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(12, imm)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b111)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0010011)
+            .get_code();
         return code;
     }
 
     static uint32_t slli(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::convert_to_unsigned_value(args.arg_3);
-        uint32_t code = CodeEncoder().add_bits(12, imm).add_register(args.arg_2).add_bits(3, 0b001)
-                .add_register(args.arg_1).add_bits(7, 0b0010011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(12, imm)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b001)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0010011)
+            .get_code();
         return code;
     }
 
     static uint32_t srli(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::convert_to_unsigned_value(args.arg_3);
-        uint32_t code = CodeEncoder().add_bits(12, imm).add_register(args.arg_2).add_bits(3, 0b101)
-                .add_register(args.arg_1).add_bits(7, 0b0010011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(12, imm)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b101)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0010011)
+            .get_code();
         return code;
     }
 
     static uint32_t srai(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::convert_to_unsigned_value(args.arg_3);
         imm |= 1 << 10;
-        uint32_t code = CodeEncoder().add_bits(12, imm).add_register(args.arg_2).add_bits(3, 0b101)
-                .add_register(args.arg_1).add_bits(7, 0b0010011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(12, imm)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b101)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0010011)
+            .get_code();
         return code;
     }
 
     static uint32_t add(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000000).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b000).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000000)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b000)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t sub(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0100000).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b000).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0100000)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b000)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t sll(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000000).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b001).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000000)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b001)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t slt(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000000).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b010).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000000)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b010)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t sltu(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000000).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b011).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000000)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b011)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t xor_(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000000).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b100).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000000)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b100)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t srl(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000000).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b101).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000000)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b101)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t sra(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0100000).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b101).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0100000)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b101)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t or_(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000000).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b110).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000000)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b110)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011)
+            .get_code();
         return code;
     }
 
     static uint32_t and_(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder().add_bits(7, 0b0000000).add_register(args.arg_3).add_register(args.arg_2)
-                .add_bits(3, 0b111).add_register(args.arg_1).add_bits(7, 0b0110011).get_code();
+        uint32_t code = CodeEncoder()
+            .add_bits(7, 0b0000000)
+            .add_register(args.arg_3)
+            .add_register(args.arg_2)
+            .add_bits(3, 0b111)
+            .add_register(args.arg_1)
+            .add_bits(7, 0b0110011
+            ).get_code();
         return code;
     }
 private:
@@ -351,7 +602,7 @@ private:
         return value;
     }
 public:
-    typedef uint32_t (*ThreeArgsInstruction)(ThreeArgsCommandArgs&);
+    using ThreeArgsInstruction = uint32_t (*)(ThreeArgsCommandArgs&);
     inline static const std::unordered_map<std::string, ThreeArgsInstruction> three_args_instructions = {
             {"jalr",  &CodeEncoder::jalr}, {"beq", &CodeEncoder::beq}, {"bne", &CodeEncoder::bne},
             {"blt",   &CodeEncoder::blt}, {"bge", &CodeEncoder::bge}, {"bltu", &CodeEncoder::bltu},
@@ -368,7 +619,7 @@ public:
             {"remu",  &CodeEncoder::remu}, {"slt", &CodeEncoder::slt}, {"sltu", &CodeEncoder::sltu},
             {"xor",   &CodeEncoder::xor_}
     };
-    typedef uint32_t (*TwoArgsInstruction)(TwoArgsCommandArgs&);
+    using TwoArgsInstruction = uint32_t (*)(TwoArgsCommandArgs&);
     inline static const std::unordered_map<std::string, TwoArgsInstruction> two_args_instructions = {
             {"lui", &CodeEncoder::lui}, {"auipc", &CodeEncoder::auipc}, {"auipc", &CodeEncoder::auipc},
             {"jal", &CodeEncoder::jal}
