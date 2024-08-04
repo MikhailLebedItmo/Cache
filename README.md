@@ -1,4 +1,7 @@
 # Assembly code interpreter, with calculation of the percentage of cache hits
+Лабаратоная работа ИТМО, АРХВМ, 2 семест
+
+[полное условие](https://docs.google.com/document/d/1Wh580FzXMa0HaQLrRC_1s-q5e_2RZEjrRv6qYVn5Pzs/edit)
 
 ## Описание программы
 Программа моделирует исполнение ассемблерного кода (архитектура набора комманд RISC-V),
