@@ -1,3 +1,5 @@
+// Класс моделирующий оперативную память.
+
 #pragma once
 
 #include "MEMLine.h"
@@ -9,11 +11,11 @@ private:
     using address_config = AddressConfig<TagLen, IndexLen, OffsetLen>;
     using mem_line = MEMLine<address_config::max_tag, address_config::max_offset>;
 public:
-    MEM()
-        : bytes(address_config::max_address){
+    MEM() : bytes(address_config::max_address) {
 
     }
 
+    // Возвращает линию оперативной памяти, в которой находиться ячейка с данным адрессом
     mem_line read_line(uint32_t address) {
         auto [tag, index, offset] = address_config::split_address(address);
         auto [first_cell_index, last_cell_index] = address_config::get_containing_line(address);

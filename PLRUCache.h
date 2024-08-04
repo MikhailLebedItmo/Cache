@@ -1,10 +1,11 @@
-#pragma once
+// Класс моделирующий процессорный кэш с политикой вытеснения Pseudo-LRU (PLRU)
 
 #pragma once
 
 #include "PLRUCacheLines.h"
 #include "MEM.h"
 #include "ICahe.h"
+#include "CacheLookupResult.h"
 
 #include <cassert>
 
@@ -19,7 +20,7 @@ public:
 
     }
 
-    std::pair<std::byte&, bool> get_mem_cell(uint32_t address) {
+    CacheLookupResult get_mem_cell(uint32_t address) {
         assert(address < address_config_t::max_address);
         auto [tag, index, offset] = address_config_t::split_address(address);
         return cache[index].get_mem_cell(address, mem);

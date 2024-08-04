@@ -1,3 +1,5 @@
+// Моделирует одну кэш линию я PLRU-кэша.
+
 #pragma once
 
 #include "MEMLine.h"
@@ -24,9 +26,9 @@ public:
         return flag_;
     }
 
-    // At program startup all lines are in invalid state
+    // В начале работы программы все линии кэша находятся в невалидном состоянии
     bool is_invalidated() const {
-        return this->tag == MaxTag;
+        return MEMLine<MaxTag, LineSize>::line.size() == 0;
     }
 private:
     bool flag_ = false;

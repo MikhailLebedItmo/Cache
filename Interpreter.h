@@ -1,3 +1,8 @@
+// Класс исполняющий ассемблерный код
+
+// Для исполнения каждой ассемблерной команды есть соответсвующий метод, указатели на которые
+// лежат в статических хэш-мапах: two_args_instructions и three_args_instructions.
+
 #pragma once
 
 #include "ICahe.h"
@@ -6,7 +11,6 @@
 #include <unordered_map>
 #include <vector>
 #include <iostream>
-
 
 struct TwoArgs {
     const std::string& arg_1;
@@ -18,15 +22,20 @@ struct ThreeArgs : public TwoArgs {
 };
 
 
-template <typename Implementation>
+template <typename CacheImplementation>
 class Interpreter {
 public:
     using Commands = std::vector<std::vector<std::string>>;
 private:
-    using TwoArgsInstruction = void (Interpreter::*)(TwoArgs&); // todo maby const TwoArgs&
+    using TwoArgsInstruction = void (Interpreter::*)(TwoArgs&);
     using ThreeArgsInstruction = void (Interpreter::*)(ThreeArgs&);
 public:
-    Interpreter(const Commands& code, ICache<Implementation>& cache)
+    struct HitsStatistics {
+        uint32_t hits_cnt;
+        uint32_t requests_cnt;
+    };
+
+    Interpreter(const Commands& code, ICache<CacheImplementation>& cache)
         : code(code)
         , cur_command(this->code.begin())
         , registers()
@@ -34,7 +43,7 @@ public:
 
     }
 
-    std::pair<uint32_t, uint32_t> run() {
+    HitsStatistics run() {
         while (cur_command->front() != "jalr" || ((*cur_command)[2] != "ra" && (*cur_command)[2] != "x1")) {
             if (cur_command->size() == 3) {
                 TwoArgs args = {(*cur_command)[1], (*cur_command)[2]};
@@ -48,6 +57,7 @@ public:
                 (*this.*instruction_ptr)(args);
             } else {
                 std::cerr << "Error: wrong command";
+                exit(EXIT_FAILURE);
             }
         }
 
@@ -78,7 +88,7 @@ private: // Instructions
 
     void mulh(ThreeArgs& args) {
         uint64_t res = (int64_t)registers[args.arg_2] * (int64_t)registers[args.arg_3];
-        registers[args.arg_1] = res >> 32; // todo maby int>>shift
+        registers[args.arg_1] = res >> 32;
         jump(1);
     }
 
@@ -231,7 +241,6 @@ private: // Instructions
         jump(1);
     }
 
-    // todo check signed and unsigned <
     void sltiu(ThreeArgs& args) {
         if (registers[args.arg_2] < convert_to_unsigned_value(args.arg_3)) {
             registers[args.arg_1] = 1;
@@ -288,7 +297,7 @@ private: // Instructions
         jump(1);
     }
 
-    void slt(ThreeArgs& args) { // todo: add to map
+    void slt(ThreeArgs& args) {
         if ((int)registers[args.arg_2] < (int)registers[args.arg_3]) {
             registers[args.arg_1] = 1;
         } else {
@@ -297,7 +306,7 @@ private: // Instructions
         jump(1);
     }
 
-    void sltu(ThreeArgs& args) { // todo: add to map
+    void sltu(ThreeArgs& args) {
         if (registers[args.arg_2] < registers[args.arg_3]) {
             registers[args.arg_1] = 1;
         } else {
@@ -306,7 +315,7 @@ private: // Instructions
         jump(1);
     }
 
-    void xor_(ThreeArgs& args) { // todo: add to map
+    void xor_(ThreeArgs& args) {
         registers[args.arg_1] = registers[args.arg_2] ^ registers[args.arg_3];
         jump(1);
     }
@@ -338,24 +347,25 @@ private: // Instructions
 private:
     static uint32_t convert_to_unsigned_value(const std::string& value) {
         uint32_t ivalue;
+        size_t* pend = nullptr;
         if (value.size() > 2 && value[1] == 'x') {
-            // todo: maby bad input
-            ivalue = std::stoul(value, nullptr, 16);
+            ivalue = std::stoul(value, pend, 16);
         } else {
-            ivalue = std::stoul(value, nullptr, 10);
+            ivalue = std::stoul(value, pend, 10);
+        }
+        if (*pend != value.size()) {
+            std::cerr << "Can't convert " << value << " to numeric value" << std::endl;
+            exit(EXIT_FAILURE);
         }
         return ivalue;
     }
-    template <uint8_t N> // todo: N < 32
-    static int32_t expand_N_bit_value(const std::string& value) {
-        uint32_t ivalue = convert_to_unsigned_value(value);
-        return expand_N_bit_value<N>(ivalue);
-    }
 
-    template <uint8_t N> // todo: N < 32
+    // переводит число записанное в N-битной форме, в 32-битную форму(с учётом знака)
+    template <uint8_t N>
     static int32_t expand_N_bit_value(uint32_t ivalue) {
+        static_assert(N < 32);
         if ((ivalue >> (N - 1)) & 1) {
-            // number is negative => add 1 to the beginning
+            // число отрицательное => добавляем 1(биты) в начало числа
             uint32_t mask = (1 << (32 - N)) - 1;
             mask <<= N;
             ivalue |= mask;
@@ -363,6 +373,14 @@ private:
         return static_cast<int32_t>(ivalue);
     }
 
+    template <uint8_t N>
+    static int32_t expand_N_bit_value(const std::string& value) {
+        static_assert(N < 32);
+        uint32_t ivalue = convert_to_unsigned_value(value);
+        return expand_N_bit_value<N>(ivalue);
+    }
+
+    // вспомогательный метод для перемещения по коду
     void jump(int shift) {
         cur_command += shift;
         registers["pc"] += 4 * shift;
@@ -394,5 +412,5 @@ private:
     const Commands& code;
     Commands::const_iterator cur_command;
     Registers registers;
-    ICache<Implementation>& cache;
+    ICache<CacheImplementation>& cache;
 };

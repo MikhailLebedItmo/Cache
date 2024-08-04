@@ -21,5 +21,6 @@ add_executable(se_comp_arch24_cache_isa_MikhailLebedItmo
         Interpreter.h
         CommandLineArgsParser.h
         CommandLineArgsParser.cpp
+        CacheLookupResult.h
 )
 

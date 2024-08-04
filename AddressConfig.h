@@ -1,3 +1,5 @@
+// Вспомогательный класс для работы с адрессами ячеек оперативной памяти
+
 #pragma once
 
 #include <cstdint>
@@ -11,7 +13,18 @@ public:
     static constexpr uint32_t max_offset  = (uint32_t)1 << OffsetLen;
     static constexpr uint32_t max_address = (uint32_t)1 << (TagLen + IndexLen + OffsetLen);
 
-    static std::tuple<uint32_t, uint32_t, uint32_t> split_address(uint32_t address) {
+    struct AddressComponents {
+        uint32_t tag;
+        uint32_t index;
+        uint32_t offset;
+    };
+
+    struct LineRange {
+        uint32_t first_cell_index;
+        uint32_t last_cell_index;
+    };
+
+    static AddressComponents split_address(uint32_t address) {
         uint32_t tag = address >> (IndexLen + OffsetLen);
         uint32_t index = (address >> OffsetLen) & index_mask;
         uint32_t offset = address & offset_mask;
@@ -19,7 +32,8 @@ public:
         return {tag, index, offset};
     }
 
-    static std::pair<uint32_t, uint32_t> get_containing_line(uint32_t address) {
+    // Возвращает строку оперативной памяти, в которой находиться ячейка с заданным адрессом
+    static LineRange get_containing_line(uint32_t address) {
         uint32_t first_cell_index = address >> OffsetLen << OffsetLen;
         uint32_t last_cell_index = first_cell_index + (1 << OffsetLen);
 

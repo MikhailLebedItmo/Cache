@@ -1,6 +1,5 @@
 #include "Registers.h"
 
-
 Registers::Registers() {
     values.resize(registers_names_1.size());
     for (int i = 0; i < registers_names_1.size(); ++i) {

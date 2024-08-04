@@ -1,9 +1,13 @@
+// Класс предоставляющий интерфейс кэша процессора
+// Для реализации статического полиморфизма используется CRTP-idiom
+
 #pragma once
+
+#include "CacheLookupResult.h"
 
 #include <cstdint>
 #include <cstddef>
 #include <utility>
-
 
 template <typename Implementation>
 class ICache {
@@ -17,9 +21,9 @@ public:
         uint32_t bytes_read = 0;
         bool is_hit = true;
         for (uint8_t i = 0; i < BytesCnt; ++i) {
-            auto res = get_mem_cell(address);  // todo: rename
-            is_hit = is_hit && res.second;
-            bytes_read |= (uint32_t)res.first << (i * 8);
+            auto res = get_mem_cell(address);
+            is_hit = is_hit && res.is_hit;
+            bytes_read |= (uint32_t)res.cell << (i * 8);
         }
         hits_cnt += is_hit;
 
@@ -34,8 +38,8 @@ public:
         uint32_t byte_mask = (1 << 8) - 1;
         for (uint8_t i = 0; i < BytesCnt; ++i) {
             auto res = get_mem_cell(address);
-            is_hit = is_hit && res.second;
-            res.first = static_cast<std::byte>(value & byte_mask);
+            is_hit = is_hit && res.is_hit;
+            res.cell = static_cast<std::byte>(value & byte_mask);
             value >>= 8;
         }
         hits_cnt += is_hit;
@@ -49,7 +53,7 @@ public:
         return hits_cnt;
     }
 private:
-    std::pair<std::byte&, bool> get_mem_cell(uint32_t address) {
+    CacheLookupResult get_mem_cell(uint32_t address) {
         return impl()->get_mem_cell(address);
     }
 

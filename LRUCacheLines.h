@@ -3,6 +3,7 @@
 #include "LRUCacheLine.h"
 #include "AddressConfig.h"
 #include "MEM.h"
+#include "CacheLookupResult.h"
 
 #include <cstdint>
 #include <vector>
@@ -20,33 +21,34 @@ public:
 
     }
 
-    // todo: change pair, tuple on structures
-    std::pair<std::byte&, bool> get_mem_cell(uint32_t address, mem_t mem) {
+    // Возвращает ссылку на ячейку оперативной памяти. Если её не было в кэше - предварительно загружает.
+    CacheLookupResult get_mem_cell(uint32_t address, mem_t& mem) {
         auto [tag, index, offset] = address_config_t::split_address(address);
         auto it = std::ranges::find_if(lines,
             [tag](const auto& line){return line.get_tag() == tag;}
         );
         if (it != lines.end()) {
+            // Ячейка есть в кэше
             update_flags(it);
-
             return {it->get_mem_cell(offset), true};
         }
-        it = std::ranges::find_if(lines,
+        auto delete_line_it = std::ranges::find_if(lines,
             [](const auto& line){return line.flag() == 0;}
         );
-        it->update_line(mem.read_line(address));
-        update_flags(it);
+        delete_line_it->update_line(mem.read_line(address));
+        update_flags(delete_line_it);
 
-        return {it->get_mem_cell(offset), false};
+        return {delete_line_it->get_mem_cell(offset), false};
     }
 private:
-    std::vector<lru_cashe_line_t> lines;
-
+    // Обновляет позиции cache-lines в очереди на удаление
     void update_flags(std::vector<lru_cashe_line_t>::iterator used_line) {
         auto update_flag = [used_flag = used_line->flag()](lru_cashe_line_t& line) {
             line.flag() = (line.flag() > used_flag) ? line.flag() - 1 : line.flag();
-        };
-        std::ranges::for_each(lines, update_flag); // updates queue position in LRUCache
-        used_line->flag() = lines.size() - 1;
+        };  // для строк которые были позже used_line в очереди на удаление, нужно уменьшить позицию
+        std::ranges::for_each(lines, update_flag);
+        used_line->flag() = lines.size() - 1; // использованная строка теперь последняя в очереди на удаление
     }
+
+    std::vector<lru_cashe_line_t> lines;
 };

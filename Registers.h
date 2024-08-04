@@ -1,3 +1,8 @@
+// Класс моделирующий регистры процессора
+
+// Так как у каждого регистра есть два имени, заводиться массив со значениями регистров
+// и хэш-мэпа key - имя регистра, value - итератор на ячейку массива со значением данного регистра
+
 #pragma once
 
 #include <vector>
@@ -7,7 +12,7 @@
 
 class Registers {
 private:
-    static const std::vector<std::string> registers_names_1; // todo rename
+    static const std::vector<std::string> registers_names_1;
     static const std::vector<std::string> registers_names_2;
 public:
     Registers();
