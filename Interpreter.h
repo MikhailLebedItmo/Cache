@@ -347,13 +347,13 @@ private: // Instructions
 private:
     static uint32_t convert_to_unsigned_value(const std::string& value) {
         uint32_t ivalue;
-        size_t* pend = nullptr;
+        size_t pend = 0;
         if (value.size() > 2 && value[1] == 'x') {
-            ivalue = std::stoul(value, pend, 16);
+            ivalue = std::stoul(value, &pend, 16);
         } else {
-            ivalue = std::stoul(value, pend, 10);
+            ivalue = std::stoul(value, &pend, 10);
         }
-        if (*pend != value.size()) {
+        if (pend != value.size()) {
             std::cerr << "Can't convert " << value << " to numeric value" << std::endl;
             exit(EXIT_FAILURE);
         }
