@@ -134,7 +134,7 @@ requires requires (InIt it) {{*it} -> std::convertible_to<char>;}
 
 ```c++
 static uint32_t remu(ThreeArgsCommandArgs& args) {
-    uint32_t code = CodeEncoder()
+    uint32_t code = InstructionEncoder()
         .add_bits(7, 0b0000001)
         .add_register(args.arg_3)
         .add_register(args.arg_2)

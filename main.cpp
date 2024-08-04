@@ -4,6 +4,7 @@
 #include "PLRUCache.h"
 #include "Interpreter.h"
 #include "CodeEncoder.h"
+#include "format"
 
 #include <vector>
 #include <string>
@@ -21,7 +22,6 @@ const int CACHE_INDEX_LEN = 5;
 const int CACHE_OFFSET_LEN = 5;
 
 int main(int argc, char** argv) {
-
     // Симуляция
     CommandLineArgsParser cmd_args_parser(argc, argv);
     std::ifstream asm_file(cmd_args_parser.get_asm_file_path());
@@ -41,18 +41,18 @@ int main(int argc, char** argv) {
         Interpreter interpreter(commands, cache);
         auto [hits_cnt, requests_cnt] = interpreter.run();
         double hits_percent = (double)hits_cnt / requests_cnt * 100;
-        std::printf("LRU\thit rate: %3.4f%%\n", hits_percent);
+        std::cout << std::format("LRU\thit rate: {:3.4f}%\n", hits_percent);
     }
     if (replacement == 0 || replacement == 2) {
         PLRUCache<CACHE_WAY, CACHE_TAG_LEN, CACHE_INDEX_LEN, CACHE_OFFSET_LEN> cache;
         Interpreter interpreter(commands, cache);
         auto [hits_cnt, requests_cnt] = interpreter.run();
         double hits_percent = (double)hits_cnt / requests_cnt * 100;
-        std::printf("pLRU\thit rate: %3.4f%%\n", hits_percent);
+        std::cout << std::format("pLRU\thit rate: {:3.4f}%\n", hits_percent);
     }
 
     // Перевод в бинарник
-    std::ifstream bin_file(cmd_args_parser.get_bin_file_path(), std::ios::binary);
+    std::ofstream bin_file(cmd_args_parser.get_bin_file_path(), std::ios::binary);
     if (!asm_file.is_open()) {
         std::cerr << "failed to open " << cmd_args_parser.get_asm_file_path() << std::endl;
         exit(EXIT_FAILURE);
@@ -60,8 +60,8 @@ int main(int argc, char** argv) {
     CodeEncoder code_encoder(
         commands.begin()
         , commands.end()
-        , std::ostreambuf_iterator<uint32_t>(bin_file)
+        , std::ostreambuf_iterator<char>(bin_file)
     );
-    code_encoder.encode_all_commands(bin_file_path);
+    code_encoder.encode_all_commands();
     return 0;
 }

@@ -14,7 +14,7 @@ class CodeEncoder {
 public:
     explicit CodeEncoder(InIt commands_it_beg, InIt commands_it_end, OutIt out_it)
             : cur_it(commands_it_beg)
-            , end_it(commands_it_beg)
+            , end_it(commands_it_end)
             , out_it(out_it) {
 
     }
@@ -33,14 +33,23 @@ public:
                 std::cerr << "Error: command " << command[0] << " not found" << std::endl;
                 exit(-1);
             }
-            *out_it = code;
-            ++out_it;
+            std::array<uint8_t, 4> bytes = {
+                static_cast<uint8_t>(code & 0xFF),
+                static_cast<uint8_t>((code >> 8) & 0xFF),
+                static_cast<uint8_t>((code >> 16) & 0xFF),
+                static_cast<uint8_t>((code >> 24) & 0xFF)
+            };
+            for (auto byte: bytes) {
+                *out_it = byte;
+                ++out_it;
+            }
+            ++cur_it;
         }
     }
 private:
     static uint32_t lui(TwoArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::convert_to_unsigned_value(args.arg_2);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(20, imm)
             .add_register(args.arg_1)
             .add_bits(7, 0b0110111)
@@ -50,7 +59,7 @@ private:
 
     static uint32_t auipc(TwoArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::convert_to_unsigned_value(args.arg_2);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(20, imm)
             .add_register(args.arg_1)
             .add_bits(7, 0b0010111)
@@ -60,7 +69,7 @@ private:
 
     static uint32_t jal(TwoArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<21>(args.arg_2);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(1, slice(imm, 20, 20))
             .add_bits(10, slice(imm, 10, 1))
             .add_bits(1, slice(imm, 11, 11))
@@ -72,7 +81,7 @@ private:
     }
 
     static uint32_t mul(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000001)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -84,7 +93,7 @@ private:
     }
 
     static uint32_t mulh(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000001)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -96,7 +105,7 @@ private:
     }
 
     static uint32_t mulhsu(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000001)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -108,7 +117,7 @@ private:
     }
 
     static uint32_t mulhu(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000001)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -120,7 +129,7 @@ private:
     }
 
     static uint32_t div(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000001)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -132,7 +141,7 @@ private:
     }
 
     static uint32_t divu(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000001)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -144,7 +153,7 @@ private:
     }
 
     static uint32_t rem(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000001)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -156,7 +165,7 @@ private:
     }
 
     static uint32_t remu(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000001)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -169,7 +178,7 @@ private:
 
     static uint32_t jalr(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_3);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(12, imm)
             .add_register(args.arg_2)
             .add_bits(3, 0b000)
@@ -181,7 +190,7 @@ private:
 
     static uint32_t beq(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<13>(args.arg_3);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(1, slice(imm, 12, 12))
             .add_bits(6, slice(imm, 10, 5))
             .add_register(args.arg_2)
@@ -196,7 +205,7 @@ private:
 
     static uint32_t bne(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<13>(args.arg_3);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(1, slice(imm, 12, 12))
             .add_bits(6, slice(imm, 10, 5))
             .add_register(args.arg_2)
@@ -212,7 +221,7 @@ private:
 
     static uint32_t blt(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<13>(args.arg_3);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(1, slice(imm, 12, 12))
             .add_bits(6, slice(imm, 10, 5))
             .add_register(args.arg_2)
@@ -227,7 +236,7 @@ private:
 
     static uint32_t bge(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<13>(args.arg_3);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(1, slice(imm, 12, 12))
             .add_bits(6, slice(imm, 10, 5))
             .add_register(args.arg_2)
@@ -242,7 +251,7 @@ private:
 
     static uint32_t bltu(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<13>(args.arg_3);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(1, slice(imm, 12, 12))
             .add_bits(6, slice(imm, 10, 5))
             .add_register(args.arg_2)
@@ -257,7 +266,7 @@ private:
 
     static uint32_t bgeu(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<13>(args.arg_3);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(1, slice(imm, 12, 12))
             .add_bits(6, slice(imm, 10, 5))
             .add_register(args.arg_2)
@@ -272,7 +281,7 @@ private:
 
     static uint32_t lb(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(12, imm)
             .add_register(args.arg_3)
             .add_bits(3, 0b000)
@@ -284,7 +293,7 @@ private:
 
     static uint32_t lh(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(12, imm)
             .add_register(args.arg_3)
             .add_bits(3, 0b001)
@@ -296,7 +305,7 @@ private:
 
     static uint32_t lw(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(12, imm)
             .add_register(args.arg_3)
             .add_bits(3, 0b010)
@@ -308,7 +317,7 @@ private:
 
     static uint32_t lbu(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(12, imm)
             .add_register(args.arg_3)
             .add_bits(3, 0b100)
@@ -319,7 +328,7 @@ private:
 
     static uint32_t lhu(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(12, imm)
             .add_register(args.arg_3)
             .add_bits(3, 0b101)
@@ -331,7 +340,7 @@ private:
 
     static uint32_t sb(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, slice(imm, 11, 5))
             .add_register(args.arg_1)
             .add_register(args.arg_3)
@@ -344,7 +353,7 @@ private:
 
     static uint32_t sh(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, slice(imm, 11, 5))
             .add_register(args.arg_1)
             .add_register(args.arg_3)
@@ -357,7 +366,7 @@ private:
 
     static uint32_t sw(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_2);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, slice(imm, 11, 5))
             .add_register(args.arg_1)
             .add_register(args.arg_3)
@@ -370,7 +379,7 @@ private:
 
     static uint32_t addi(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_3);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(12, imm)
             .add_register(args.arg_2)
             .add_bits(3, 0b000)
@@ -382,7 +391,7 @@ private:
 
     static uint32_t slti(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_3);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(12, imm)
             .add_register(args.arg_2)
             .add_bits(3, 0b010)
@@ -394,7 +403,7 @@ private:
 
     static uint32_t sltiu(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_3);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(12, imm)
             .add_register(args.arg_2)
             .add_bits(3, 0b011)
@@ -406,7 +415,7 @@ private:
 
     static uint32_t xori(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_3);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(12, imm)
             .add_register(args.arg_2)
             .add_bits(3, 0b100)
@@ -418,7 +427,7 @@ private:
 
     static uint32_t ori(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_3);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(12, imm)
             .add_register(args.arg_2)
             .add_bits(3, 0b110)
@@ -430,7 +439,7 @@ private:
 
     static uint32_t andi(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::expand_N_bit_value<12>(args.arg_3);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(12, imm)
             .add_register(args.arg_2)
             .add_bits(3, 0b111)
@@ -442,7 +451,7 @@ private:
 
     static uint32_t slli(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::convert_to_unsigned_value(args.arg_3);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(12, imm)
             .add_register(args.arg_2)
             .add_bits(3, 0b001)
@@ -454,7 +463,7 @@ private:
 
     static uint32_t srli(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::convert_to_unsigned_value(args.arg_3);
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(12, imm)
             .add_register(args.arg_2)
             .add_bits(3, 0b101)
@@ -467,7 +476,7 @@ private:
     static uint32_t srai(ThreeArgsCommandArgs& args) {
         uint32_t imm = ValueExpander::convert_to_unsigned_value(args.arg_3);
         imm |= 1 << 10;
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(12, imm)
             .add_register(args.arg_2)
             .add_bits(3, 0b101)
@@ -478,7 +487,7 @@ private:
     }
 
     static uint32_t add(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000000)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -490,7 +499,7 @@ private:
     }
 
     static uint32_t sub(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0100000)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -502,7 +511,7 @@ private:
     }
 
     static uint32_t sll(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000000)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -514,7 +523,7 @@ private:
     }
 
     static uint32_t slt(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000000)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -526,7 +535,7 @@ private:
     }
 
     static uint32_t sltu(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000000)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -538,7 +547,7 @@ private:
     }
 
     static uint32_t xor_(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000000)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -550,7 +559,7 @@ private:
     }
 
     static uint32_t srl(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000000)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -562,7 +571,7 @@ private:
     }
 
     static uint32_t sra(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0100000)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -574,7 +583,7 @@ private:
     }
 
     static uint32_t or_(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000000)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
@@ -586,7 +595,7 @@ private:
     }
 
     static uint32_t and_(ThreeArgsCommandArgs& args) {
-        uint32_t code = CodeEncoder()
+        uint32_t code = InstructionEncoder()
             .add_bits(7, 0b0000000)
             .add_register(args.arg_3)
             .add_register(args.arg_2)
