@@ -1,5 +1,5 @@
 # Assembly code interpreter, with calculation of the percentage of cache hits
-Лабаратоная работа ИТМО, АРХВМ, 2 семест
+Лабаратоная работа ИТМО, АРХВМ, 2 семестр
 
 [полное условие](https://docs.google.com/document/d/1Wh580FzXMa0HaQLrRC_1s-q5e_2RZEjrRv6qYVn5Pzs/edit)
 
