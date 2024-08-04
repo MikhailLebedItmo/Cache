@@ -8,7 +8,8 @@
 #include <iostream>
 
 
-template <std::input_iterator InIt, std::output_iterator<uint32_t> OutIt>
+// todo add concepts
+template <std::input_iterator InIt, std::output_iterator<char> OutIt>
 class CodeEncoder {
 public:
     explicit CodeEncoder(InIt commands_it_beg, InIt commands_it_end, OutIt out_it)

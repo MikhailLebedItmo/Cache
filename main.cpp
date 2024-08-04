@@ -3,6 +3,7 @@
 #include "LRUCache.h"
 #include "PLRUCache.h"
 #include "Interpreter.h"
+#include "CodeEncoder.h"
 
 #include <vector>
 #include <string>
@@ -20,6 +21,8 @@ const int CACHE_INDEX_LEN = 5;
 const int CACHE_OFFSET_LEN = 5;
 
 int main(int argc, char** argv) {
+
+    // Симуляция
     CommandLineArgsParser cmd_args_parser(argc, argv);
     std::ifstream asm_file(cmd_args_parser.get_asm_file_path());
     if (!asm_file.is_open()) {
@@ -47,5 +50,18 @@ int main(int argc, char** argv) {
         double hits_percent = (double)hits_cnt / requests_cnt * 100;
         std::printf("pLRU\thit rate: %3.4f%%\n", hits_percent);
     }
+
+    // Перевод в бинарник
+    std::ifstream bin_file(cmd_args_parser.get_bin_file_path(), std::ios::binary);
+    if (!asm_file.is_open()) {
+        std::cerr << "failed to open " << cmd_args_parser.get_asm_file_path() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    CodeEncoder code_encoder(
+        commands.begin()
+        , commands.end()
+        , std::ostreambuf_iterator<uint32_t>(bin_file)
+    );
+    code_encoder.encode_all_commands(bin_file_path);
     return 0;
 }
