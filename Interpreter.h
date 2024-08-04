@@ -7,19 +7,12 @@
 
 #include "ICahe.h"
 #include "Registers.h"
+#include "AsmCommandArgs.h"
+#include "ValueExpander.h"
 
 #include <unordered_map>
 #include <vector>
 #include <iostream>
-
-struct TwoArgs {
-    const std::string& arg_1;
-    const std::string& arg_2;
-};
-
-struct ThreeArgs : public TwoArgs {
-    const std::string& arg_3;
-};
 
 
 template <typename CacheImplementation>
@@ -27,8 +20,8 @@ class Interpreter {
 public:
     using Commands = std::vector<std::vector<std::string>>;
 private:
-    using TwoArgsInstruction = void (Interpreter::*)(TwoArgs&);
-    using ThreeArgsInstruction = void (Interpreter::*)(ThreeArgs&);
+    using TwoArgsInstruction = void (Interpreter::*)(TwoArgsCommandArgs&);
+    using ThreeArgsInstruction = void (Interpreter::*)(ThreeArgsCommandArgs&);
 public:
     struct HitsStatistics {
         uint32_t hits_cnt;
@@ -46,11 +39,11 @@ public:
     HitsStatistics run() {
         while (cur_command->front() != "jalr" || ((*cur_command)[2] != "ra" && (*cur_command)[2] != "x1")) {
             if (cur_command->size() == 3) {
-                TwoArgs args = {(*cur_command)[1], (*cur_command)[2]};
+                TwoArgsCommandArgs args = {(*cur_command)[1], (*cur_command)[2]};
                 auto instruction_ptr = two_args_instructions.at(cur_command->front());
                 (*this.*instruction_ptr)(args);
             } else if (cur_command->size() == 4) {
-                ThreeArgs args{
+                ThreeArgsCommandArgs args{
                         {(*cur_command)[1], (*cur_command)[2]}, (*cur_command)[3]
                 };
                 auto instruction_ptr = three_args_instructions.at(cur_command->front());
@@ -64,176 +57,176 @@ public:
         return {cache.get_hits_cnt(), cache.get_requests_cnt()};
     }
 private: // Instructions
-    void lui(TwoArgs& args) {
-        uint32_t val = convert_to_unsigned_value(args.arg_2) << 11;
+    void lui(TwoArgsCommandArgs& args) {
+        uint32_t val = ValueExpander::convert_to_unsigned_value(args.arg_2) << 11;
         registers[args.arg_1] = val;
         jump(1);
     }
-    void auipc(TwoArgs& args) {
-        uint32_t address = registers["pc"] + (convert_to_unsigned_value(args.arg_2) << 11);
+    void auipc(TwoArgsCommandArgs& args) {
+        uint32_t address = registers["pc"] + (ValueExpander::convert_to_unsigned_value(args.arg_2) << 11);
         registers[args.arg_1] = address;
         jump(1);
     }
 
-    void jal(TwoArgs& args) {
-        int shift = expand_N_bit_value<21>(args.arg_2) / 4;
+    void jal(TwoArgsCommandArgs& args) {
+        int shift = ValueExpander::expand_N_bit_value<21>(args.arg_2) / 4;
         registers[args.arg_1] = registers["pc"] + 4;
         jump(shift);
     }
 
-    void mul(ThreeArgs& args) {
+    void mul(ThreeArgsCommandArgs& args) {
         registers[args.arg_1] = (int)registers[args.arg_2] * (int)registers[args.arg_3];
         jump(1);
     }
 
-    void mulh(ThreeArgs& args) {
+    void mulh(ThreeArgsCommandArgs& args) {
         uint64_t res = (int64_t)registers[args.arg_2] * (int64_t)registers[args.arg_3];
         registers[args.arg_1] = res >> 32;
         jump(1);
     }
 
-    void mulhsu(ThreeArgs& args) {
+    void mulhsu(ThreeArgsCommandArgs& args) {
         uint64_t res = (uint64_t)registers[args.arg_2] * (uint64_t)registers[args.arg_3];
         registers[args.arg_1] = res >> 32;
         jump(1);
     }
 
-    void mulhu(ThreeArgs& args) {
+    void mulhu(ThreeArgsCommandArgs& args) {
         uint64_t res = (int64_t)registers[args.arg_2] * (uint64_t)registers[args.arg_3];
         registers[args.arg_1] = res >> 32;
         jump(1);
     }
 
-    void div(ThreeArgs& args) {
+    void div(ThreeArgsCommandArgs& args) {
         registers[args.arg_1] = (int)registers[args.arg_2] / (int)registers[args.arg_3];
         jump(1);
     }
 
-    void divu(ThreeArgs& args) {
+    void divu(ThreeArgsCommandArgs& args) {
         registers[args.arg_1] = registers[args.arg_2] / registers[args.arg_3];
         jump(1);
     }
 
-    void rem(ThreeArgs& args) {
+    void rem(ThreeArgsCommandArgs& args) {
         registers[args.arg_1] = (int)registers[args.arg_2] % (int)registers[args.arg_3];
         jump(1);
     }
 
-    void remu(ThreeArgs& args) {
+    void remu(ThreeArgsCommandArgs& args) {
         registers[args.arg_1] = registers[args.arg_2] % registers[args.arg_3];
         jump(1);
     }
 
-    void jalr(ThreeArgs& args) {
-        uint32_t new_address = registers[args.arg_2] + expand_N_bit_value<12>(args.arg_3);
+    void jalr(ThreeArgsCommandArgs& args) {
+        uint32_t new_address = registers[args.arg_2] + ValueExpander::expand_N_bit_value<12>(args.arg_3);
         new_address = new_address << 1 >> 1;
         registers[args.arg_1] = registers["pc"] + 4;
         int shift = ((int)new_address - (int)registers["pc"]) / 4;
         jump(shift);
     }
 
-    void beq(ThreeArgs& args) {
+    void beq(ThreeArgsCommandArgs& args) {
         if (registers[args.arg_1] == registers[args.arg_2]) {
-            return jump(expand_N_bit_value<13>(args.arg_3) / 4);
+            return jump(ValueExpander::expand_N_bit_value<13>(args.arg_3) / 4);
         }
         jump(1);
     }
 
-    void bne(ThreeArgs& args) {
+    void bne(ThreeArgsCommandArgs& args) {
         if (registers[args.arg_1] != registers[args.arg_2]) {
-            return jump(expand_N_bit_value<13>(args.arg_3) / 4);
+            return jump(ValueExpander::expand_N_bit_value<13>(args.arg_3) / 4);
         }
         jump(1);
     }
 
-    void blt(ThreeArgs& args) {
+    void blt(ThreeArgsCommandArgs& args) {
         if ((int)registers[args.arg_1] < (int)registers[args.arg_2]) {
-            return jump(expand_N_bit_value<13>(args.arg_3) / 4);
+            return jump(ValueExpander::expand_N_bit_value<13>(args.arg_3) / 4);
         }
         jump(1);
     }
 
-    void bge(ThreeArgs& args) {
+    void bge(ThreeArgsCommandArgs& args) {
         if ((int)registers[args.arg_1] >= (int)registers[args.arg_2]) {
-            return jump(expand_N_bit_value<13>(args.arg_3) / 4);
+            return jump(ValueExpander::expand_N_bit_value<13>(args.arg_3) / 4);
         }
         jump(1);
     }
 
-    void bltu(ThreeArgs& args) {
+    void bltu(ThreeArgsCommandArgs& args) {
         if ((uint32_t)registers[args.arg_1] < (uint32_t)registers[args.arg_2]) {
-            return jump(expand_N_bit_value<13>(args.arg_3) / 4);
+            return jump(ValueExpander::expand_N_bit_value<13>(args.arg_3) / 4);
         }
         jump(1);
     }
 
-    void bgeu(ThreeArgs& args) {
+    void bgeu(ThreeArgsCommandArgs& args) {
         if ((uint32_t)registers[args.arg_1] >= (uint32_t)registers[args.arg_2]) {
-            return jump(expand_N_bit_value<13>(args.arg_3) / 4);
+            return jump(ValueExpander::expand_N_bit_value<13>(args.arg_3) / 4);
         }
         jump(1);
     }
 
-    void lb(ThreeArgs& args) {
-        uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
-        registers[args.arg_1] = expand_N_bit_value<8>(cache.template read<1>(address));
+    void lb(ThreeArgsCommandArgs& args) {
+        uint32_t address = registers[args.arg_3] + ValueExpander::expand_N_bit_value<12>(args.arg_2);
+        registers[args.arg_1] = ValueExpander::expand_N_bit_value<8>(cache.template read<1>(address));
         jump(1);
     }
 
-    void lh(ThreeArgs& args) {
-        uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
-        registers[args.arg_1] = expand_N_bit_value<16>(cache.template read<2>(address));
+    void lh(ThreeArgsCommandArgs& args) {
+        uint32_t address = registers[args.arg_3] + ValueExpander::expand_N_bit_value<12>(args.arg_2);
+        registers[args.arg_1] = ValueExpander::expand_N_bit_value<16>(cache.template read<2>(address));
         jump(1);
     }
 
-    void lw(ThreeArgs& args) {
-        uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
+    void lw(ThreeArgsCommandArgs& args) {
+        uint32_t address = registers[args.arg_3] + ValueExpander::expand_N_bit_value<12>(args.arg_2);
         registers[args.arg_1] = cache.template read<4>(address);
         jump(1);
     }
 
-    void lbu(ThreeArgs& args) {
-        uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
+    void lbu(ThreeArgsCommandArgs& args) {
+        uint32_t address = registers[args.arg_3] + ValueExpander::expand_N_bit_value<12>(args.arg_2);
         registers[args.arg_1] = cache.template read<1>(address);
         jump(1);
     }
 
-    void lhu(ThreeArgs& args) {
-        uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
+    void lhu(ThreeArgsCommandArgs& args) {
+        uint32_t address = registers[args.arg_3] + ValueExpander::expand_N_bit_value<12>(args.arg_2);
         registers[args.arg_1] = cache.template read<2>(address);
         jump(1);
     }
 
-    void sb(ThreeArgs& args) {
-        uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
+    void sb(ThreeArgsCommandArgs& args) {
+        uint32_t address = registers[args.arg_3] + ValueExpander::expand_N_bit_value<12>(args.arg_2);
         uint32_t byte_mask = (1 << 8) - 1;
         uint8_t byte = registers[args.arg_1] & byte_mask;
         cache.template write<1>(address, byte);
         jump(1);
     }
 
-    void sh(ThreeArgs& args) {
-        uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
+    void sh(ThreeArgsCommandArgs& args) {
+        uint32_t address = registers[args.arg_3] + ValueExpander::expand_N_bit_value<12>(args.arg_2);
         uint32_t half_word_mask = (1 << 16) - 1;
         uint16_t half_word = registers[args.arg_1] & half_word_mask;
         cache.template write<2>(address, half_word);
         jump(1);
     }
 
-    void sw(ThreeArgs& args) {
-        uint32_t address = registers[args.arg_3] + expand_N_bit_value<12>(args.arg_2);
+    void sw(ThreeArgsCommandArgs& args) {
+        uint32_t address = registers[args.arg_3] + ValueExpander::expand_N_bit_value<12>(args.arg_2);
         uint32_t word = registers[args.arg_1];
         cache.template write<4>(address, word);
         jump(1);
     }
 
-    void addi(ThreeArgs& args) {
-        registers[args.arg_1] = registers[args.arg_2] + expand_N_bit_value<12>(args.arg_3);
+    void addi(ThreeArgsCommandArgs& args) {
+        registers[args.arg_1] = registers[args.arg_2] + ValueExpander::expand_N_bit_value<12>(args.arg_3);
         jump(1);
     }
 
-    void slti(ThreeArgs& args) {
-        if ((int)registers[args.arg_2] < expand_N_bit_value<12>(args.arg_3)) {
+    void slti(ThreeArgsCommandArgs& args) {
+        if ((int)registers[args.arg_2] < ValueExpander::expand_N_bit_value<12>(args.arg_3)) {
             registers[args.arg_1] = 1;
         } else {
             registers[args.arg_1] = 0;
@@ -241,8 +234,8 @@ private: // Instructions
         jump(1);
     }
 
-    void sltiu(ThreeArgs& args) {
-        if (registers[args.arg_2] < convert_to_unsigned_value(args.arg_3)) {
+    void sltiu(ThreeArgsCommandArgs& args) {
+        if (registers[args.arg_2] < ValueExpander::convert_to_unsigned_value(args.arg_3)) {
             registers[args.arg_1] = 1;
         } else {
             registers[args.arg_1] = 0;
@@ -250,54 +243,54 @@ private: // Instructions
         jump(1);
     }
 
-    void xori(ThreeArgs& args) {
-        registers[args.arg_1] = registers[args.arg_2] ^ expand_N_bit_value<12>(args.arg_3);
+    void xori(ThreeArgsCommandArgs& args) {
+        registers[args.arg_1] = registers[args.arg_2] ^ ValueExpander::expand_N_bit_value<12>(args.arg_3);
         jump(1);
     }
 
-    void ori(ThreeArgs& args) {
-        registers[args.arg_1] = registers[args.arg_2] | expand_N_bit_value<12>(args.arg_3);
+    void ori(ThreeArgsCommandArgs& args) {
+        registers[args.arg_1] = registers[args.arg_2] | ValueExpander::expand_N_bit_value<12>(args.arg_3);
         jump(1);
     }
 
-    void andi(ThreeArgs& args) {
-        registers[args.arg_1] = registers[args.arg_2] & expand_N_bit_value<12>(args.arg_3);
+    void andi(ThreeArgsCommandArgs& args) {
+        registers[args.arg_1] = registers[args.arg_2] & ValueExpander::expand_N_bit_value<12>(args.arg_3);
         jump(1);
     }
 
-    void slli(ThreeArgs& args) {
-        registers[args.arg_1] = registers[args.arg_2] << convert_to_unsigned_value(args.arg_3);
+    void slli(ThreeArgsCommandArgs& args) {
+        registers[args.arg_1] = registers[args.arg_2] << ValueExpander::convert_to_unsigned_value(args.arg_3);
         jump(1);
     }
 
-    void srli(ThreeArgs& args) {
-        registers[args.arg_1] = registers[args.arg_2] >> convert_to_unsigned_value(args.arg_3);
+    void srli(ThreeArgsCommandArgs& args) {
+        registers[args.arg_1] = registers[args.arg_2] >> ValueExpander::convert_to_unsigned_value(args.arg_3);
         jump(1);
     }
 
-    void srai(ThreeArgs& args) {
-        registers[args.arg_1] = (int)registers[args.arg_2] >> convert_to_unsigned_value(args.arg_3);
+    void srai(ThreeArgsCommandArgs& args) {
+        registers[args.arg_1] = (int)registers[args.arg_2] >> ValueExpander::convert_to_unsigned_value(args.arg_3);
         jump(1);
     }
 
-    void add(ThreeArgs& args) {
+    void add(ThreeArgsCommandArgs& args) {
         registers[args.arg_1] = registers[args.arg_2] + registers[args.arg_3];
         jump(1);
     }
 
-    void sub(ThreeArgs& args) {
+    void sub(ThreeArgsCommandArgs& args) {
         registers[args.arg_1] = registers[args.arg_2] - registers[args.arg_3];
         jump(1);
     }
 
-    void sll(ThreeArgs& args) {
+    void sll(ThreeArgsCommandArgs& args) {
         uint32_t shift_mask = (1 << 5) - 1;
         uint32_t shift = registers[args.arg_3] & shift_mask;
         registers[args.arg_1] = registers[args.arg_2] << shift;
         jump(1);
     }
 
-    void slt(ThreeArgs& args) {
+    void slt(ThreeArgsCommandArgs& args) {
         if ((int)registers[args.arg_2] < (int)registers[args.arg_3]) {
             registers[args.arg_1] = 1;
         } else {
@@ -306,7 +299,7 @@ private: // Instructions
         jump(1);
     }
 
-    void sltu(ThreeArgs& args) {
+    void sltu(ThreeArgsCommandArgs& args) {
         if (registers[args.arg_2] < registers[args.arg_3]) {
             registers[args.arg_1] = 1;
         } else {
@@ -315,71 +308,36 @@ private: // Instructions
         jump(1);
     }
 
-    void xor_(ThreeArgs& args) {
+    void xor_(ThreeArgsCommandArgs& args) {
         registers[args.arg_1] = registers[args.arg_2] ^ registers[args.arg_3];
         jump(1);
     }
 
-    void srl(ThreeArgs& args) {
+    void srl(ThreeArgsCommandArgs& args) {
         uint32_t shift_mask = (1 << 5) - 1;
         uint32_t shift = registers[args.arg_3] & shift_mask;
         registers[args.arg_1] = registers[args.arg_2] >> shift;
         jump(1);
     }
 
-    void sra(ThreeArgs& args) {
+    void sra(ThreeArgsCommandArgs& args) {
         uint32_t shift_mask = (1 << 5) - 1;
         uint32_t shift = registers[args.arg_3] & shift_mask;
         registers[args.arg_1] = (int)registers[args.arg_2] >> shift;
         jump(1);
     }
 
-    void or_(ThreeArgs& args) {
+    void or_(ThreeArgsCommandArgs& args) {
         registers[args.arg_1] = registers[args.arg_2] | registers[args.arg_3];
         jump(1);
     }
 
-    void and_(ThreeArgs& args) {
+    void and_(ThreeArgsCommandArgs& args) {
         registers[args.arg_1] = registers[args.arg_2] & registers[args.arg_3];
         jump(1);
     }
 
 private:
-    static uint32_t convert_to_unsigned_value(const std::string& value) {
-        uint32_t ivalue;
-        size_t pend = 0;
-        if (value.size() > 2 && value[1] == 'x') {
-            ivalue = std::stoul(value, &pend, 16);
-        } else {
-            ivalue = std::stoul(value, &pend, 10);
-        }
-        if (pend != value.size()) {
-            std::cerr << "Can't convert " << value << " to numeric value" << std::endl;
-            exit(EXIT_FAILURE);
-        }
-        return ivalue;
-    }
-
-    // переводит число записанное в N-битной форме, в 32-битную форму(с учётом знака)
-    template <uint8_t N>
-    static int32_t expand_N_bit_value(uint32_t ivalue) {
-        static_assert(N < 32);
-        if ((ivalue >> (N - 1)) & 1) {
-            // число отрицательное => добавляем 1(биты) в начало числа
-            uint32_t mask = (1 << (32 - N)) - 1;
-            mask <<= N;
-            ivalue |= mask;
-        }
-        return static_cast<int32_t>(ivalue);
-    }
-
-    template <uint8_t N>
-    static int32_t expand_N_bit_value(const std::string& value) {
-        static_assert(N < 32);
-        uint32_t ivalue = convert_to_unsigned_value(value);
-        return expand_N_bit_value<N>(ivalue);
-    }
-
     // вспомогательный метод для перемещения по коду
     void jump(int shift) {
         cur_command += shift;
