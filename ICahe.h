@@ -20,8 +20,9 @@ public:
         ++requests_cnt;
         uint32_t bytes_read = 0;
         bool is_hit = true;
+        address += BytesCnt;
         for (uint8_t i = 0; i < BytesCnt; ++i) {
-            auto res = get_mem_cell(address);
+            auto res = get_mem_cell(--address);
             is_hit = is_hit && res.is_hit;
             bytes_read |= (uint32_t)res.cell << (i * 8);
         }
@@ -36,8 +37,9 @@ public:
         ++requests_cnt;
         bool is_hit = true;
         uint32_t byte_mask = (1 << 8) - 1;
+        address += BytesCnt;
         for (uint8_t i = 0; i < BytesCnt; ++i) {
-            auto res = get_mem_cell(address);
+            auto res = get_mem_cell(--address);
             is_hit = is_hit && res.is_hit;
             res.cell = static_cast<std::byte>(value & byte_mask);
             value >>= 8;
